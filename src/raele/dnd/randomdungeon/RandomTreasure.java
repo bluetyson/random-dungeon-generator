@@ -2,6 +2,14 @@ package raele.dnd.randomdungeon;
 
 public class RandomTreasure {
 	
+	// TODO Atualmente o tesouro é constituído somente de moedas, falta criar
+	// o tesouro de pedras preciosas, objetos de arte e itens mágicos.
+	// Considerar a criação das classes RandomTreasureCoins (atualmente esta),
+	// RandomTreasureObjects (para sortear somente gemstones e art objects),
+	// RandomTreasureMagicItems (para sortear somente itens mágicos) e
+	// RandomTreasure (que possui um tesouro auto-gerado de cada tipo, para
+	// gerar um treasure hoard inteiro de uma vez.
+	
 	public enum Tier {
 		UNDEFINED(null, null, null, null, null),
 		LOCAL_HEROES(

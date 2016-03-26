@@ -1,6 +1,6 @@
 package raele.dnd.randomdungeon;
 
-public class RandomHazard {
+public class RandomHazard { //TODO
 	
 	private String name;
 

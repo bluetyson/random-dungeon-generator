@@ -13,23 +13,11 @@ public class RandomChamber extends Location {
 	}
 	
 	public enum ExitType {
-		DOOR(new RandomExitCreator() {
-			@Override
-			public Location createRandomExit() {
-				return new RandomDoor();
-			}}),
-		CORRIDOR(new RandomExitCreator() {
-			@Override
-			public Location createRandomExit() {
-				return new RandomCorridor();
-			}}),
+		DOOR(() -> new RandomDoor()),
+		CORRIDOR(() -> new Corridor(10, null, null, new RandomBeyondPassage())),
 		;
-		private interface RandomExitCreator {
-			Location createRandomExit();
-		}
-		
+		private interface RandomExitCreator {Location createRandomExit();}
 		private RandomExitCreator creator;
-		
 		private ExitType(RandomExitCreator creator) {
 			this.creator = creator;
 		}
@@ -39,7 +27,7 @@ public class RandomChamber extends Location {
 		}
 	}
 	
-	private static final RollableTable<Chamber> chamberTable =
+	private static final RollableTable<Chamber> TABLE_CHAMBER =
 			new RollableTableBuilder<Chamber>(Dice.d20)
 					.addEntry(1, 2, new Chamber(20, 20, Shape.SQUARE, Size.NORMAL))
 					.addEntry(3, 4, new Chamber(30, 30, Shape.SQUARE, Size.NORMAL))
@@ -55,7 +43,7 @@ public class RandomChamber extends Location {
 					.addEntry(20, new Chamber(40, 60, Shape.TRAPEZOID, Size.LARGE))
 					.build();
 	
-	private static final RollableTable<NumberOfExits> numberOfExitsTable =
+	private static final RollableTable<NumberOfExits> TABLE_NUMBER_OF_EXITS =
 			new RollableTableBuilder<NumberOfExits>(Dice.d20)
 					.addEntry(1, 3, new NumberOfExits(0, 0))
 					.addEntry(4, 5, new NumberOfExits(0, 1))
@@ -69,7 +57,7 @@ public class RandomChamber extends Location {
 					.addEntry(20, new NumberOfExits(4, 6))
 					.build();
 	
-	private static final RollableTable<ExitLocation> exitLocationTable =
+	private static final RollableTable<ExitLocation> TABLE_EXIT_LOCATION =
 			new RollableTableBuilder<ExitLocation>(Dice.d20)
 					.addEntry(1, 7, ExitLocation.OPPOSITE_WALL)
 					.addEntry(8, 12, ExitLocation.LEFT_WALL)
@@ -77,13 +65,13 @@ public class RandomChamber extends Location {
 					.addEntry(18, 20, ExitLocation.SAME_WALL)
 					.build();
 	
-	private static final RollableTable<ExitType> exitTypeTable =
+	private static final RollableTable<ExitType> TABLE_EXIT_TYPE =
 			new RollableTableBuilder<ExitType>(Dice.d20)
 					.addEntry(1, 10, ExitType.DOOR)
 					.addEntry(11, 20, ExitType.CORRIDOR)
 					.build();
 	
-	private static final RollableTable<String> generalChamberPurposeTable =
+	private static final RollableTable<String> TABLE_GENERAL_CHAMBER_PURPOSE =
 			new RollableTableBuilder<String>(Dice.d100)
 					.addEntry(1, "Antechamber")
 					.addEntry(2, 3, "Armory")
@@ -146,7 +134,7 @@ public class RandomChamber extends Location {
 					.addEntry(99, 100, "Workshop")
 					.build();
 	
-	private static final RollableTable<String> currentChamberStateTable =
+	private static final RollableTable<String> TABLE_CURRENT_CHAMBER_STATE =
 			new RollableTableBuilder<String>(Dice.d20)
 					.addEntry(1, 3, "Rubble, ceiling partially collapsed")
 					.addEntry(4, 5, "Holes, floor partially collapsed")
@@ -159,27 +147,30 @@ public class RandomChamber extends Location {
 					.addEntry(20, "Pristine and in original state")
 					.build();
 	
+	private static interface EncounterCreator {
+		public Encounter create();
+	}
 	private static final RandomTreasure.Tier DEFAULT_TIER = RandomTreasure.Tier.UNDEFINED;
-	private static final RollableTable<Encounter> dungeonChamberContentsTable =
-			new RollableTableBuilder<Encounter>(Dice.d100)
-					.addEntry(1, 8, new Encounter.Builder().addRandomMonster().build())
-					.addEntry(9, 15, new Encounter.Builder().addRandomMonster().setupRandomTreasure(DEFAULT_TIER).build())
-					.addEntry(16, 27, new Encounter.Builder().addRandomMonster().build())
-					.addEntry(28, 33, new Encounter.Builder().addRandomMonster().setupRandomTreasure(DEFAULT_TIER).build())
-					.addEntry(34, 42, new Encounter.Builder().addRandomMonster().build())
-					.addEntry(43, 50, new Encounter.Builder().addRandomMonster().setupRandomTreasure(DEFAULT_TIER).build())
-					.addEntry(51, 58, new Encounter.Builder().addRandomHazard().setupRandomTreasure(DEFAULT_TIER).build())
-					.addEntry(59, 63, new Encounter.Builder().addRandomObstacle().build())
-					.addEntry(64, 73, new Encounter.Builder().addRandomTrap().build())
-					.addEntry(74, 76, new Encounter.Builder().addRandomTrap().setupRandomTreasure(DEFAULT_TIER).build())
-					.addEntry(77, 80, new Encounter.Builder().addRandomTrick().build())
-					.addEntry(81, 88, new Encounter.Builder().build())
-					.addEntry(89, 94, new Encounter.Builder().addRandomHazard().build())
-					.addEntry(95, 100, new Encounter.Builder().setupRandomTreasure(DEFAULT_TIER).build())
+	private static final RollableTable<EncounterCreator> TABLE_DUNGEON_CHAMBER_CONTENTS =
+			new RollableTableBuilder<EncounterCreator>(Dice.d100)
+					.addEntry(1, 8, () -> new Encounter.Builder().addRandomMonster().build())
+					.addEntry(9, 15, () -> new Encounter.Builder().addRandomMonster().setupRandomTreasure(DEFAULT_TIER).build())
+					.addEntry(16, 27, () -> new Encounter.Builder().addRandomMonster().build())
+					.addEntry(28, 33, () -> new Encounter.Builder().addRandomMonster().setupRandomTreasure(DEFAULT_TIER).build())
+					.addEntry(34, 42, () -> new Encounter.Builder().addRandomMonster().build())
+					.addEntry(43, 50, () -> new Encounter.Builder().addRandomMonster().setupRandomTreasure(DEFAULT_TIER).build())
+					.addEntry(51, 58, () -> new Encounter.Builder().addRandomHazard().setupRandomTreasure(DEFAULT_TIER).build())
+					.addEntry(59, 63, () -> new Encounter.Builder().addRandomObstacle().build())
+					.addEntry(64, 73, () -> new Encounter.Builder().addRandomTrap().build())
+					.addEntry(74, 76, () -> new Encounter.Builder().addRandomTrap().setupRandomTreasure(DEFAULT_TIER).build())
+					.addEntry(77, 80, () -> new Encounter.Builder().addRandomTrick().build())
+					.addEntry(81, 88, () -> new Encounter.Builder().build())
+					.addEntry(89, 94, () -> new Encounter.Builder().addRandomHazard().build())
+					.addEntry(95, 100, () -> new Encounter.Builder().setupRandomTreasure(DEFAULT_TIER).build())
 					.build();
 	
 	private Chamber chamberFeatures;
-	private Location[] chamberExits;
+	private Location[] chamberExits; // TODO Definir não somente as saidas, mas também suas localizações
 	private String chamberPurpose;
 	private String chamberState;
 	private Encounter chamberContents;
@@ -189,19 +180,19 @@ public class RandomChamber extends Location {
 	}
 	
 	public void refresh() {
-		this.chamberFeatures = chamberTable.roll();
+		this.chamberFeatures = TABLE_CHAMBER.roll();
 		
-		int numberOfExits = this.chamberFeatures.getSize().getNumberOfExits(numberOfExitsTable.roll());
+		int numberOfExits = this.chamberFeatures.getSize().getNumberOfExits(TABLE_NUMBER_OF_EXITS.roll());
 		chamberExits = new Location[numberOfExits];
 		for (int i = 0; i < numberOfExits; i++) {
-			ExitType type = exitTypeTable.roll();
+			ExitType type = TABLE_EXIT_TYPE.roll();
 			chamberExits[i] = type.createRandomExit();
 		}
 		
-		this.chamberPurpose = generalChamberPurposeTable.roll();
+		this.chamberPurpose = TABLE_GENERAL_CHAMBER_PURPOSE.roll();
 		
-		this.chamberState = currentChamberStateTable.roll();
-		this.chamberContents = dungeonChamberContentsTable.roll();
+		this.chamberState = TABLE_CURRENT_CHAMBER_STATE.roll();
+		this.chamberContents = TABLE_DUNGEON_CHAMBER_CONTENTS.roll().create();
 	}
 	
 	public Chamber getChamberFeatures() {

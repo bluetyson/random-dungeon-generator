@@ -3,10 +3,10 @@ package raele.dnd.randomdungeon;
 public class Stair extends Location {
 	
 	private int[] levelChangeOptions;
-	private Location exit;
+	private LocationCreator exit;
 	private boolean hasSteps;
 	
-	public Stair(int[] levelChangeOptions, Location exit, boolean hasSteps) {
+	public Stair(int[] levelChangeOptions, LocationCreator exit, boolean hasSteps) {
 		super();
 		this.levelChangeOptions = levelChangeOptions;
 		this.exit = exit;
@@ -19,10 +19,10 @@ public class Stair extends Location {
 	public void setLevelChangeOptions(int[] levelChangeOptions) {
 		this.levelChangeOptions = levelChangeOptions;
 	}
-	public Location getExit() {
+	public LocationCreator getExit() {
 		return exit;
 	}
-	public void setExit(Location exit) {
+	public void setExit(LocationCreator exit) {
 		this.exit = exit;
 	}
 	public boolean isHasSteps() {

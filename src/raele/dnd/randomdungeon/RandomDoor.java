@@ -2,7 +2,7 @@ package raele.dnd.randomdungeon;
 
 public class RandomDoor extends Location {
 	
-	private static final RollableTable<DoorType> doorTypeTable =
+	private static final RollableTable<DoorType> TABLE_DOOR_TYPE =
 			new RollableTableBuilder<DoorType>(Dice.d20)
 					.addEntry(1, 10, new DoorType(DoorType.Type.WOODEN, false))
 					.addEntry(11, 12, new DoorType(DoorType.Type.WOODEN, true))
@@ -16,17 +16,15 @@ public class RandomDoor extends Location {
 					.addEntry(20, new DoorType(DoorType.Type.SECRET, true))
 					.build();
 
-	private static class TCorridor extends RandomCorridor {} // TODO
-	private static class StraightCorridor extends RandomCorridor {} // TODO
 	private static class TrapBehindADoor extends Location {} // TODO
 	
-	private static final RollableTable<Location> beyondDoorTable =
-			new RollableTableBuilder<Location>(Dice.d20)
-					.addEntry(1, 2, new TCorridor())
-					.addEntry(3, 8, new StraightCorridor())
-					.addEntry(9, 18, new RandomChamber())
-					.addEntry(19, new RandomStair())
-					.addEntry(20, new TrapBehindADoor())
+	private static final RollableTable<LocationCreator> TABLE_BEYOND_DOOR =
+			new RollableTableBuilder<LocationCreator>(Dice.d20)
+					.addEntry(1, 2, () -> new Corridor(10, new Corridor(10, null, null, new RandomBeyondPassage()), new Corridor(10, null, null, new RandomBeyondPassage()), null))
+					.addEntry(3, 8, () -> new Corridor(20, null, null, new RandomBeyondPassage()))
+					.addEntry(9, 18, () -> new RandomChamber())
+					.addEntry(19, () -> new RandomStair())
+					.addEntry(20, () -> new TrapBehindADoor())
 					.build();
 			
 	
@@ -38,8 +36,8 @@ public class RandomDoor extends Location {
 	}
 
 	public void refresh() {
-		this.doorFeatures = doorTypeTable.roll();
-		this.doorExit = beyondDoorTable.roll();
+		this.doorFeatures = TABLE_DOOR_TYPE.roll();
+		this.doorExit = TABLE_BEYOND_DOOR.roll().create();
 	}
 
 	public DoorType getDoorFeatures() {
