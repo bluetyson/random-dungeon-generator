@@ -1,4 +1,6 @@
-package raele.dnd.randomdungeon;
+package raele.dnd.randomdungeon.model;
+
+import java.util.function.Supplier;
 
 public class RandomDoor extends Location {
 	
@@ -16,20 +18,24 @@ public class RandomDoor extends Location {
 					.addEntry(20, new DoorType(DoorType.Type.SECRET, true))
 					.build();
 
-	private static class TrapBehindADoor extends Location {} // TODO
+	private static class TrapBehindADoor extends Location { // TODO
+		@Override
+		public Exit[] getExits() {
+			return new Exit[] {};
+		}
+	}
 	
-	private static final RollableTable<LocationCreator> TABLE_BEYOND_DOOR =
-			new RollableTableBuilder<LocationCreator>(Dice.d20)
-					.addEntry(1, 2, () -> new Corridor(10, new Corridor(10, null, null, new RandomBeyondPassage()), new Corridor(10, null, null, new RandomBeyondPassage()), null))
-					.addEntry(3, 8, () -> new Corridor(20, null, null, new RandomBeyondPassage()))
+	private static final RollableTable<Supplier<Location>> TABLE_BEYOND_DOOR =
+			new RollableTableBuilder<Supplier<Location>>(Dice.d20)
+					.addEntry(1, 2, () -> new Corridor(10, () -> new Corridor(10, null, null, () -> new RandomBeyondPassage()), () -> new Corridor(10, null, null, () -> new RandomBeyondPassage()), null))
+					.addEntry(3, 8, () -> new Corridor(20, null, null, () -> new RandomBeyondPassage()))
 					.addEntry(9, 18, () -> new RandomChamber())
 					.addEntry(19, () -> new RandomStair())
 					.addEntry(20, () -> new TrapBehindADoor())
 					.build();
-			
 	
 	private DoorType doorFeatures;
-	private Location doorExit;
+	private Exit doorExit;
 	
 	public RandomDoor() {
 		refresh();
@@ -37,7 +43,7 @@ public class RandomDoor extends Location {
 
 	public void refresh() {
 		this.doorFeatures = TABLE_DOOR_TYPE.roll();
-		this.doorExit = TABLE_BEYOND_DOOR.roll().create();
+		this.doorExit = new Exit(TABLE_BEYOND_DOOR.roll(), null);
 	}
 
 	public DoorType getDoorFeatures() {
@@ -48,12 +54,24 @@ public class RandomDoor extends Location {
 		this.doorFeatures = doorFeatures;
 	}
 
-	public Location getDoorExit() {
-		return doorExit;
+	public Exit getDoorExit() {
+		return this.doorExit;
 	}
 
-	public void setDoorExit(Location doorExit) {
+	public void setDoorExit(Exit doorExit) {
 		this.doorExit = doorExit;
+	}
+	
+	@Override
+	public String toString() {
+		DoorType door = this.getDoorFeatures();
+		
+		return (door.isLocked() ? "locked " : "unlocked ") + door.getType().toString().toLowerCase() + " door";  
+	}
+
+	@Override
+	public Exit[] getExits() {
+		return new Exit[] {this.doorExit};
 	}
 
 }

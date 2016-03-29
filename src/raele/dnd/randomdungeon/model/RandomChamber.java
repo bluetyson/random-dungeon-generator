@@ -1,29 +1,30 @@
-package raele.dnd.randomdungeon;
+package raele.dnd.randomdungeon.model;
 
-import raele.dnd.randomdungeon.Chamber.Shape;
-import raele.dnd.randomdungeon.Chamber.Size;
+import java.util.function.Supplier;
+
+import raele.dnd.randomdungeon.model.Chamber.Shape;
+import raele.dnd.randomdungeon.model.Chamber.Size;
 
 public class RandomChamber extends Location {
 	
-	private enum ExitLocation {
+	public enum ExitLocation {
 		OPPOSITE_WALL,
 		LEFT_WALL,
 		RIGHT_WALL,
 		SAME_WALL,
 	}
+	private enum ExitType implements Supplier<Location> {
 	
-	public enum ExitType {
 		DOOR(() -> new RandomDoor()),
-		CORRIDOR(() -> new Corridor(10, null, null, new RandomBeyondPassage())),
+		CORRIDOR(() -> new Corridor(10, null, null, () -> new RandomBeyondPassage())),
 		;
-		private interface RandomExitCreator {Location createRandomExit();}
-		private RandomExitCreator creator;
-		private ExitType(RandomExitCreator creator) {
-			this.creator = creator;
+		private Supplier<Location> supplier;
+		private ExitType(Supplier<Location> supplier) {
+			this.supplier = supplier;
 		}
-		
-		public Location createRandomExit() {
-			return this.creator.createRandomExit();
+		@Override
+		public Location get() {
+			return this.supplier.get();
 		}
 	}
 	
@@ -147,12 +148,9 @@ public class RandomChamber extends Location {
 					.addEntry(20, "Pristine and in original state")
 					.build();
 	
-	private static interface EncounterCreator {
-		public Encounter create();
-	}
 	private static final RandomTreasure.Tier DEFAULT_TIER = RandomTreasure.Tier.UNDEFINED;
-	private static final RollableTable<EncounterCreator> TABLE_DUNGEON_CHAMBER_CONTENTS =
-			new RollableTableBuilder<EncounterCreator>(Dice.d100)
+	private static final RollableTable<Supplier<Encounter>> TABLE_DUNGEON_CHAMBER_CONTENTS =
+			new RollableTableBuilder<Supplier<Encounter>>(Dice.d100)
 					.addEntry(1, 8, () -> new Encounter.Builder().addRandomMonster().build())
 					.addEntry(9, 15, () -> new Encounter.Builder().addRandomMonster().setupRandomTreasure(DEFAULT_TIER).build())
 					.addEntry(16, 27, () -> new Encounter.Builder().addRandomMonster().build())
@@ -170,7 +168,7 @@ public class RandomChamber extends Location {
 					.build();
 	
 	private Chamber chamberFeatures;
-	private Location[] chamberExits; // TODO Definir não somente as saidas, mas também suas localizações
+	private Exit[] chamberExits; // TODO Definir não somente as saidas, mas também suas localizações
 	private String chamberPurpose;
 	private String chamberState;
 	private Encounter chamberContents;
@@ -183,24 +181,26 @@ public class RandomChamber extends Location {
 		this.chamberFeatures = TABLE_CHAMBER.roll();
 		
 		int numberOfExits = this.chamberFeatures.getSize().getNumberOfExits(TABLE_NUMBER_OF_EXITS.roll());
-		chamberExits = new Location[numberOfExits];
+		this.chamberExits = new Exit[numberOfExits];
 		for (int i = 0; i < numberOfExits; i++) {
-			ExitType type = TABLE_EXIT_TYPE.roll();
-			chamberExits[i] = type.createRandomExit();
+			ExitLocation exitLocation = TABLE_EXIT_LOCATION.roll();
+			Supplier<Location> beyondExit = TABLE_EXIT_TYPE.roll();
+			this.chamberExits[i] = new Exit(beyondExit, exitLocation);
 		}
 		
 		this.chamberPurpose = TABLE_GENERAL_CHAMBER_PURPOSE.roll();
 		
 		this.chamberState = TABLE_CURRENT_CHAMBER_STATE.roll();
-		this.chamberContents = TABLE_DUNGEON_CHAMBER_CONTENTS.roll().create();
+		this.chamberContents = TABLE_DUNGEON_CHAMBER_CONTENTS.roll().get();
+	}
+	
+	@Override
+	public Exit[] getExits() {
+		return this.chamberExits;
 	}
 	
 	public Chamber getChamberFeatures() {
 		return chamberFeatures;
-	}
-
-	public Object[] getChamberExits() {
-		return chamberExits;
 	}
 
 	public String getChamberPurpose() {
@@ -214,14 +214,47 @@ public class RandomChamber extends Location {
 	public Encounter getChamberContents() {
 		return chamberContents;
 	}
+	
+	public void setChamberContents(Encounter chamberContents) {
+		this.chamberContents = chamberContents;
+	}
+
+	public void setChamberFeatures(Chamber chamberFeatures) {
+		this.chamberFeatures = chamberFeatures;
+	}
+
+	public void setChamberPurpose(String chamberPurpose) {
+		this.chamberPurpose = chamberPurpose;
+	}
+
+	public void setChamberState(String chamberState) {
+		this.chamberState = chamberState;
+	}
 
 	@Override
 	public String toString() {
-		return this.chamberPurpose + ", currently " + this.chamberState + ", " + this.chamberFeatures + " with " + chamberExits.length + " exits";
-	}
-	
-	public static void main(String[] args) {
-		System.out.println(new RandomChamber());
+		StringBuilder builder = new StringBuilder()
+				.append(this.getChamberFeatures().getLength())
+				.append("x")
+				.append(this.getChamberFeatures().getWidth())
+				.append(" feets wide ")
+				.append(this.getChamberFeatures().getShape().toString().toLowerCase())
+				.append(" ")
+				.append(this.getChamberPurpose().toLowerCase())
+				.append(", currently on/with ")
+				.append(this.getChamberState().toLowerCase());
+		
+		Exit[] exits = this.getExits();
+		
+		if (exits.length == 0) {
+			builder.append(", without exits.");
+		} else {
+			builder.append(", with ")
+					.append(exits.length)
+					.append(" exits.");
+		}
+		
+		return builder.toString();
 	}
 
 }

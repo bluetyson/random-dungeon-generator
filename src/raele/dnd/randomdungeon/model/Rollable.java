@@ -1,4 +1,4 @@
-package raele.dnd.randomdungeon;
+package raele.dnd.randomdungeon.model;
 
 public interface Rollable<Result> {
 	

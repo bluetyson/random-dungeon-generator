@@ -1,6 +1,6 @@
-package raele.dnd.randomdungeon;
+package raele.dnd.randomdungeon.model;
 
-public class RandomTrap { // TODO
+public class RandomHazard { //TODO
 	
 	private String name;
 
@@ -11,5 +11,5 @@ public class RandomTrap { // TODO
 	public void setName(String name) {
 		this.name = name;
 	}
-
+	
 }

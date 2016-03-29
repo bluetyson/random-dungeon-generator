@@ -1,4 +1,4 @@
-package raele.dnd.randomdungeon;
+package raele.dnd.randomdungeon.model;
 
 public class RandomTreasure {
 	
@@ -173,6 +173,34 @@ public class RandomTreasure {
 
 	public void setPlatinumCoins(int platinumCoins) {
 		this.platinumCoins = platinumCoins;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder()
+				.append("Treasure including");
+		
+		if (this.getCopperCoins() > 0) {
+			builder.append(" ").append(this.getCopperCoins()).append(" copper coins");
+		}
+		
+		if (this.getSilverCoins() > 0) {
+			builder.append(" ").append(this.getSilverCoins()).append(" silver coins");
+		}
+		
+		if (this.getEtheriumCoins() > 0) {
+			builder.append(" ").append(this.getEtheriumCoins()).append(" etherium coins");
+		}
+		
+		if (this.getGoldCoins() > 0) {
+			builder.append(" ").append(this.getGoldCoins()).append(" gold coins");
+		}
+		
+		if (this.getPlatinumCoins() > 0) {
+			builder.append(" ").append(this.getPlatinumCoins()).append(" platinum coins");
+		}
+		
+		return builder.toString();
 	}
 
 }

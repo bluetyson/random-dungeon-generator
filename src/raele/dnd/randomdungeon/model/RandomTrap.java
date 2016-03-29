@@ -1,6 +1,6 @@
-package raele.dnd.randomdungeon;
+package raele.dnd.randomdungeon.model;
 
-public class RandomArtObject { // TODO
+public class RandomTrap { // TODO
 	
 	private String name;
 

@@ -1,21 +1,13 @@
-package raele.dnd.randomdungeon;
+package raele.dnd.randomdungeon.model;
 
 public class Chamber {
 
 	public enum Shape {
-		SQUARE("Square, %d x %d ft."),
-		RECTANGLE("Rectangule, %d x %d ft."),
-		CIRCLE("Circle, %d ft. diameter"),
-		OCTAGON("Octagon, %d x %d ft."),
-		TRAPEZOID("Trapezoid, roughly %d x %d ft."),
-		;
-		private final String readableString;
-		private Shape(String str) {
-			this.readableString = str;
-		}
-		public String getReadableString() {
-			return readableString;
-		}
+		SQUARE,
+		RECTANGLE,
+		CIRCLE,
+		OCTAGON,
+		TRAPEZOID,
 	}
 	
 	public enum Size{
@@ -85,7 +77,7 @@ public class Chamber {
 	
 	@Override
 	public String toString() {
-		return "Chamber (" + String.format(this.shape.readableString, this.length, this.width) + ", " + this.size + ")";
+		return "Chamber (" + this.shape + ", " + this.length + " x " + this.width + "ft., " + this.size + ")";
 	}
 	
 }

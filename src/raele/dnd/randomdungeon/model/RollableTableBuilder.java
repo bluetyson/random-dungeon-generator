@@ -1,4 +1,4 @@
-package raele.dnd.randomdungeon;
+package raele.dnd.randomdungeon.model;
 import java.util.HashMap;
 
 
